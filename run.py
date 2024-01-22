@@ -12,6 +12,7 @@ if __name__ == "__main__":
     parser.add_argument("--endpoint", type=str, required=True)
     parser.add_argument("--api_key", type=str, default="placeholder")
     parser.add_argument("--model", type=str, default="placeholder")
+    parser.add_argument("--no_system_message", action="store_true", default=False)
     parser.add_argument("--prompt_template", type=str, required=True)
     parser.add_argument("--input_data", type=str, required=True)
     parser.add_argument("--output_file", type=str, required=True)
@@ -31,12 +32,23 @@ if __name__ == "__main__":
 
         system_msg = prompt_template["system"]
         user_msg = prompt_template["user"].format(**row.to_dict())
-        for chunk in openai_client.chat.completions.create(
-            model=args.model,
-            messages=[
+        if args.no_system_message:
+            messages = [
+                dict(
+                    role="user",
+                    content="{system}\n\n\n{user}".format(
+                        system=system_msg, user=user_msg
+                    ),
+                )
+            ]
+        else:
+            messages = [
                 dict(role="system", content=system_msg),
                 dict(role="user", content=user_msg),
-            ],
+            ]
+        for chunk in openai_client.chat.completions.create(
+            model=args.model,
+            messages=messages,
             stream=True,
         ):
             if timestamp_first_token is None:
