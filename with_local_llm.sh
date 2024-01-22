@@ -1,3 +1,8 @@
+if [ -n "$HF_ACCESS_TOKEN" ]
+then
+       huggingface-cli login --token $HF_ACCESS_TOKEN --add-to-git-credential
+fi
+
 nohup python -u -m vllm.entrypoints.openai.api_server \
        --host 0.0.0.0 \
        --model mistralai/Mistral-7B-Instruct-v0.2 &
